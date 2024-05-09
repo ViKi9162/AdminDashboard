@@ -6,10 +6,11 @@ import Registration from "./Auth/Signup";
 import Login from "./Auth/Login";
 
 function App() {
+  console.log("React API", import.meta.env.REACT_APP_API)
   return (
     <>
       <Routes>
-        <Route path="/" element={<Login/>}/>
+        <Route path="/Login" element={<Login/>}/>
         <Route path="/" element={<Home />} />
         <Route path="/CreateEmploy" element={<CreateEmploye/>}/>
         <Route path="/EmployList" element={<EmployeList/>}/>
