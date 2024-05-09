@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const Login = () => {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -17,7 +16,6 @@ const Login = () => {
       const response = await axios.post(
         "http://localhost:8080/api/v1/auth/register",
         {
-          name: name,
           email: email,
           password: password,
         }
@@ -26,15 +24,15 @@ const Login = () => {
       // Handle successful registration
       console.log("User registered:", response.data);
       alert("Login successful.");
-      navigate("/");
+      navigate("/CreateEmploy");
     } catch (error) {
       // Handle registration errors
       if (error.response) {
-        console.error("Registration failed:", error.response.data);
-        toast.error("Registration failed. Please try again.");
+        console.error("Login failed:", error.response.data);
+        toast.error("Login failed. Please try again.");
       } else {
-        console.error("Registration failed:", error.message);
-        toast.error("Registration failed. Please try again.");
+        console.error("Login failed:", error.message);
+        toast.error("Login failed. Please try again.");
       }
     }
   };

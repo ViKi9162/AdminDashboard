@@ -1,14 +1,86 @@
-import React from "react";
+import React, { useState } from "react";
 import Layout from "../component/Layout/Layout";
 import "../Style/Pages.css";
-import ImagePicker from './../component/imagePicker';
-const CreateEmploye = () => {
+import axios from "axios";
+
+const CreateEmployee = ({ onImageSelect }) => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [gender, setGender] = useState("");
+  const [courses, setCourses] = useState([]);
+
+  const [selectedDesignation, setSelectedDesignation] = useState('');
+
+  const handleDesignationSelect = (designation) => {
+    setSelectedDesignation(designation);
+  };
+
+  const fileChangedHandler = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const courseChangedHandler = (event) => {
+    const courseValue = event.target.value;
+    const isChecked = event.target.checked;
+
+    if (isChecked) {
+      setCourses([...courses, courseValue]);
+    } else {
+      setCourses(courses.filter((course) => course !== courseValue));
+    }
+  };
+
+  const uploadHandler = () => {
+    // Perform upload logic here, for example using fetch or Axios
+    // Send selectedFile to your backend for storage
+    onImageSelect(selectedFile);
+    // Reset the state after upload
+    setSelectedFile(null);
+    setPreviewUrl("");
+  };
+
+  const submitHandler = async (event) => {
+    event.preventDefault();
+
+    try {
+      const response = await axios.post("http://localhost:8080/api/v1/createEmployee/employees", {
+        fullName:fullName,
+        email:email,
+        mobileNumber:mobileNumber,
+        designation:selectedDesignation,
+        gender:gender,
+        courses:courses,
+        image: selectedFile,
+      });
+
+      if (response.status === 201) {
+        alert("Employee created successfully"); // Alert when data is sent to the database
+        console.log("Employee created successfully");
+      }
+    } catch (error) {
+      console.error("Error creating employee:", error);
+    }
+  };
+
   return (
     <Layout>
-        <h1 className="text-center mb-7">Create Employee</h1>
+      <h1 className="text-center mb-7">Create Employee</h1>
       <div className="container-main">
         <div className="Form-container">
-          <form>
+          <form onSubmit={submitHandler}>
             <div className="mb-3">
               <label htmlFor="exampleInputName" className="form-label">
                 Enter Full Name
@@ -17,6 +89,8 @@ const CreateEmploye = () => {
                 type="Name"
                 className="form-control"
                 id="exampleInputName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
               />
             </div>
             <div className="mb-3">
@@ -28,6 +102,8 @@ const CreateEmploye = () => {
                 className="form-control"
                 id="exampleInputEmail1"
                 aria-describedby="emailHelp"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="mb-3">
@@ -38,13 +114,15 @@ const CreateEmploye = () => {
                 type="Number"
                 className="form-control"
                 id="exampleInputNumber"
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(e.target.value)}
               />
             </div>
             <div className="mb-3 drop-container1">
               <div>
-              <label htmlFor="exampleInputNumber" className="form-label">
-              Designation
-              </label>
+                <label htmlFor="exampleInputNumber" className="form-label">
+                  Designation
+                </label>
                 <div className="dropdown">
                   <button
                     className="btn btn-secondary dropdown-toggle"
@@ -52,23 +130,32 @@ const CreateEmploye = () => {
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                   >
-                    Designation
+                    {selectedDesignation ? selectedDesignation : 'Designation'}
                   </button>
                   <ul className="dropdown-menu">
                     <li>
-                      <a className="dropdown-item" href="#">
+                      <button
+                        className="dropdown-item"
+                        onClick={() => handleDesignationSelect('HR')}
+                      >
                         HR
-                      </a>
+                      </button>
                     </li>
                     <li>
-                      <a className="dropdown-item" href="#">
+                      <button
+                        className="dropdown-item"
+                        onClick={() => handleDesignationSelect('Manager')}
+                      >
                         Manager
-                      </a>
+                      </button>
                     </li>
                     <li>
-                      <a className="dropdown-item" href="#">
+                      <button
+                        className="dropdown-item"
+                        onClick={() => handleDesignationSelect('Sales')}
+                      >
                         Sales
-                      </a>
+                      </button>
                     </li>
                   </ul>
                 </div>
@@ -84,6 +171,8 @@ const CreateEmploye = () => {
                       type="radio"
                       name="flexRadioDefault"
                       id="flexRadioDefault1"
+                      value="male"
+                      onChange={(e) => setGender(e.target.value)}
                     />
                     <label
                       className="form-check-label"
@@ -98,6 +187,8 @@ const CreateEmploye = () => {
                       type="radio"
                       name="flexRadioDefault"
                       id="flexRadioDefault2"
+                      value="female"
+                      onChange={(e) => setGender(e.target.value)}
                       defaultChecked
                     />
                     <label
@@ -121,7 +212,8 @@ const CreateEmploye = () => {
                     type="checkbox"
                     id="vehicle1"
                     name="vehicle1"
-                    defaultValue="Bike"
+                    value="MCA"
+                    onChange={courseChangedHandler}
                   />
                   <label htmlFor="vehicle1">MCA</label>
                   <br />
@@ -129,7 +221,8 @@ const CreateEmploye = () => {
                     type="checkbox"
                     id="vehicle2"
                     name="vehicle2"
-                    defaultValue="Car"
+                    value="BCA"
+                    onChange={courseChangedHandler}
                   />
                   <label htmlFor="vehicle2">BCA</label>
                   <br />
@@ -137,7 +230,8 @@ const CreateEmploye = () => {
                     type="checkbox"
                     id="vehicle3"
                     name="vehicle3"
-                    defaultValue="Boat"
+                    value="BSC"
+                    onChange={courseChangedHandler}
                   />
                   <label htmlFor="vehicle3">BSC</label>
                   <br />
@@ -145,9 +239,21 @@ const CreateEmploye = () => {
                 </div>
               </div>
               <div>
-
-
-                 <ImagePicker/>
+                <input
+                  type="file"
+                  onChange={fileChangedHandler}
+                  accept="image/*"
+                />
+                {previewUrl && (
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    style={{ maxWidth: "100px", maxHeight: "100px" }}
+                  />
+                )}
+                {selectedFile && (
+                  <button onClick={uploadHandler}>Upload</button>
+                )}
               </div>
             </div>
             <div className="mb-3"></div>
@@ -164,4 +270,4 @@ const CreateEmploye = () => {
   );
 };
 
-export default CreateEmploye;
+export default CreateEmployee;
