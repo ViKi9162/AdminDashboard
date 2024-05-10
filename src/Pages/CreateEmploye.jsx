@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Layout from "../component/Layout/Layout";
-import "../Style/Pages.css";
 import axios from "axios";
 
 const CreateEmployee = ({ onImageSelect }) => {
@@ -9,11 +8,9 @@ const CreateEmployee = ({ onImageSelect }) => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [gender, setGender] = useState("");
+  const [selectedDesignation, setSelectedDesignation] = useState("");
+  const [gender, setGender] = useState("female");
   const [courses, setCourses] = useState([]);
-
-  const [selectedDesignation, setSelectedDesignation] = useState('');
 
   const handleDesignationSelect = (designation) => {
     setSelectedDesignation(designation);
@@ -43,35 +40,57 @@ const CreateEmployee = ({ onImageSelect }) => {
     }
   };
 
-  const uploadHandler = () => {
-    // Perform upload logic here, for example using fetch or Axios
-    // Send selectedFile to your backend for storage
-    onImageSelect(selectedFile);
-    // Reset the state after upload
-    setSelectedFile(null);
-    setPreviewUrl("");
+  const uploadHandler = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      const response = await axios.post("http://localhost:8080/api/v1/uploadImage", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status === 200) {
+        alert("Image uploaded successfully");
+        console.log("Image uploaded successfully");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
   };
 
   const submitHandler = async (event) => {
     event.preventDefault();
 
     try {
+      // Here you can send employee data to your backend
       const response = await axios.post("http://localhost:8080/api/v1/createEmployee/employees", {
-        fullName:fullName,
-        email:email,
-        mobileNumber:mobileNumber,
-        designation:selectedDesignation,
-        gender:gender,
-        courses:courses,
-        image: selectedFile,
+        fullName,
+        email,
+        mobileNumber,
+        designation: selectedDesignation,
+        gender,
+        courses,
+        // image: selectedFile, // Don't send the image here, upload it separately
       });
 
       if (response.status === 201) {
-        alert("Employee created successfully"); // Alert when data is sent to the database
+        alert("Employee created successfully");
         console.log("Employee created successfully");
+        // Resetting the form after successful submission
+        setFullName("");
+        setEmail("");
+        setMobileNumber("");
+        setSelectedDesignation("");
+        setGender("female");
+        setCourses([]);
+        setSelectedFile(null);
+        setPreviewUrl("");
       }
     } catch (error) {
       console.error("Error creating employee:", error);
+      // Handle error here, such as showing an error message to the user
     }
   };
 
@@ -86,7 +105,7 @@ const CreateEmployee = ({ onImageSelect }) => {
                 Enter Full Name
               </label>
               <input
-                type="Name"
+                type="text"
                 className="form-control"
                 id="exampleInputName"
                 value={fullName}
@@ -111,7 +130,7 @@ const CreateEmployee = ({ onImageSelect }) => {
                 Mobile No.
               </label>
               <input
-                type="Number"
+                type="text"
                 className="form-control"
                 id="exampleInputNumber"
                 value={mobileNumber}
@@ -172,6 +191,7 @@ const CreateEmployee = ({ onImageSelect }) => {
                       name="flexRadioDefault"
                       id="flexRadioDefault1"
                       value="male"
+                      checked={gender === "male"}
                       onChange={(e) => setGender(e.target.value)}
                     />
                     <label
@@ -188,8 +208,8 @@ const CreateEmployee = ({ onImageSelect }) => {
                       name="flexRadioDefault"
                       id="flexRadioDefault2"
                       value="female"
+                      checked={gender === "female"}
                       onChange={(e) => setGender(e.target.value)}
-                      defaultChecked
                     />
                     <label
                       className="form-check-label"
@@ -238,7 +258,7 @@ const CreateEmployee = ({ onImageSelect }) => {
                   <br />
                 </div>
               </div>
-              <div>
+              <div className="img-picker">
                 <input
                   type="file"
                   onChange={fileChangedHandler}
@@ -252,13 +272,12 @@ const CreateEmployee = ({ onImageSelect }) => {
                   />
                 )}
                 {selectedFile && (
-                  <button onClick={uploadHandler}>Upload</button>
+                  <button type="button" onClick={uploadHandler}>
+                    Upload
+                  </button>
                 )}
               </div>
             </div>
-            <div className="mb-3"></div>
-
-            <div className="mb-3"></div>
 
             <button type="submit" className="btn btn-primary">
               Submit
